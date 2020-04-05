@@ -2,7 +2,7 @@
  This bot is used for regularly checking if the public IP changed then sends the new IP in discord. This uses webhooks to send ip updates to discord.
  When this bot check the public ip, it will use http://ipinfo.io/ip to receive the IP from.
  
- ##Configuration
+ ## Configuration
  
  To use this bot. Create a local ``.env`` file with the values:
  
