@@ -72,12 +72,14 @@ async def grab_ip():
 
     :return: string IP
     """
+    logger.info("Grabbing the ip (grab_ip)")
     async with aiohttp.ClientSession() as session:
         async with session.get('http://ipinfo.io/ip') as resp:
             new_ip = await resp.text()
             new_ip = new_ip.replace('\n', '')
 
     return new_ip
+
 
 async def send_webhook(content=None, embed=None):
     """
@@ -90,9 +92,10 @@ async def send_webhook(content=None, embed=None):
     """
     me = bot.user
     async with aiohttp.ClientSession() as session:
-        webhook = discord.Webhook.from_url(WEBHOOK_URL,
+        webhook = discord.Webhook.from_url(config.WEBHOOK_URL,
                                            adapter=discord.AsyncWebhookAdapter(session))
         await webhook.send(content, embed=embed, username=me.display_name, avatar_url=me.avatar_url_as())
+
 
 async def check_ip():
     """
@@ -104,6 +107,7 @@ async def check_ip():
 
     if ip is not None:
         if ip != new_ip:
+            logger.info("New IP detected")
             embed = discord.Embed(title='New IP', description=f'IP has changed. Please use || {new_ip} ||',
                                   color=grab_color())
             await send_webhook(embed=embed)
@@ -111,12 +115,14 @@ async def check_ip():
             ip = new_ip
     else:
         # if the global ip is None, that means the bot just started
+        logger.info("Bot started")
         embed = discord.Embed(title='Bot started',
                               description='The bot has restarted / started. Just in case, here is the ip. '
                                           f'Please use || {new_ip} ||', color=grab_color())
         await send_webhook(embed=embed)
 
         ip = new_ip
+
 
 async def check_loop(time_wait):
     """
@@ -143,26 +149,32 @@ async def check_loop(time_wait):
         else:
             # no error happened, we can continue to wait
             await asyncio.sleep(time_wait)
+
+
 """
 discord.py methods
 """
-@bot.check
+
+
 async def only_trusted(ctx):
     """
-    This will run before all the commands (global check)
+    removed -- This will run before all the commands (global check) -- removed
+
+    This is a check for users with the trusted role. Only used by the IP command at the moment
     Basically, only users with trusted role and if its in a guild can run any command.
 
     Or if its a user in DEBUG_IDs, then we'll give them all the powers.
     Most likely its the developer / manager of the bot
     """
-    if ctx.author.id in DEBUG_ID:
+    if ctx.author.id in config.DEBUG_ID:
         return True
 
     if ctx.guild is not None:
-        role = ctx.guild.get_role(TRUSTED_ROLE)
+        role = ctx.guild.get_role(config.TRUSTED_ROLE)
         return role in ctx.author.roles
     else:
         raise commands.NoPrivateMessage()
+
 
 @bot.event
 async def on_ready():
@@ -177,9 +189,10 @@ async def on_ready():
         ready = True
         # creating the task
         loop = asyncio.get_event_loop()
-        loop_task = loop.create_task(check_loop(CHECK_EVERY))
+        loop_task = loop.create_task(check_loop(config.CHECK_EVERY))
 
     print(f'Logged in as {bot.user.name}')
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -228,7 +241,7 @@ async def on_command_error(ctx, error):
         # if I missed an exception, or its something else we'll just print it out or send the debug users the errors
         tb = ''.join(traceback.TracebackException.from_exception(error).format())
         message = f"Sorry, a unexpected error occurred."
-        for user_id in DEBUG_ID:
+        for user_id in config.DEBUG_ID:
             user = bot.get_user(user_id)
             try:
                 await user.send(f'[Error Handler] [{ctx.author} used {ctx.command.name}]: {error}\n```py\n{tb}```')
@@ -242,22 +255,27 @@ async def on_command_error(ctx, error):
         message = message.replace('@', '@\u200b')
         await ctx.send(embed=discord.Embed(description=message, color=discord.Color.red()))
 
+
 @bot.command()
 async def ping(ctx):
     """Pong!"""
     await ctx.send(f'Pong! {round(bot.latency * 1000)} ms')
+
 
 @bot.command()
 async def pong(ctx):
     """Ping!"""
     await ctx.send(f'Ping! {round(bot.latency * 1000)} ms')
 
+
 @bot.command()
 async def pancake(ctx):
     """Pancake"""
     await ctx.send('🥞')
 
+
 @bot.command(name='ip')
+@commands.check(only_trusted)
 async def grab_the_ip(ctx):
     """Gets the IP"""
     embed = discord.Embed(title='IP', description=f'|| {await grab_ip()} ||', color=grab_color())
