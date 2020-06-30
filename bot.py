@@ -278,18 +278,26 @@ async def pancake(ctx):
 @commands.check(only_trusted)
 async def grab_the_ip(ctx):
     """Gets the IP"""
-    embed = discord.Embed(title='IP', description=f'|| {await grab_ip()} ||', color=grab_color())
+    try:
+        await check_ip()
+        embed = discord.Embed(title='IP', description=f'|| {ip} ||', color=grab_color())
+    except aiohttp.ClientConnectionError:
+        embed = discord.Embed(title="⚠️", description="Could not connect to ipinfo", color=grab_color())
+
     await ctx.send(embed=embed)
+
 
 @bot.command()
 async def status(ctx):
-    """System's status. Note this will take 2 seconds or longer to run"""
+    """System's status. Note this will take 2.5 seconds or longer to run"""
+    message = await ctx.send(embed=discord.Embed(color=grab_color(), description="Please wait..."))
+
     # grabbing the CPU / Memory status
     psutil.cpu_percent()
     # psutil documentation says to do a second call on cpu_percent
     # I can have the interval=1, but that would be a blocking call
-    # so it'll be easier to have asyncio.sleep for 2 seconds, then call it again
-    await asyncio.sleep(2)
+    # so it'll be easier to have asyncio.sleep, then call it again
+    await asyncio.sleep(2.5)
     cpu_percent = psutil.cpu_percent()
     memory = psutil.virtual_memory()
 
@@ -301,6 +309,7 @@ async def status(ctx):
     embed.add_field(name="CPU Usage Percent", value=f'{cpu_percent}%', inline=False)
     embed.add_field(name="Memory Usage", value=f'Available: {mem_available} GB, Total: {mem_total} GB',
                     inline=False)
-    await ctx.send(embed=embed)
+    await message.edit(embed=embed)
 
-bot.run(TOKEN)
+
+bot.run(config.TOKEN)
