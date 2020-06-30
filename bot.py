@@ -10,17 +10,6 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 """
-Environmental variables (.env)
-and other constant variables
-"""
-load_dotenv()
-TOKEN = os.getenv('TOKEN')
-WEBHOOK_URL = os.getenv('WEBHOOK')
-DEBUG_ID = [109093669042151424]
-CHECK_EVERY = 1800  # 30 minutes
-TRUSTED_ROLE = 690223202420785260
-
-"""
 Variables used
 """
 bot = commands.Bot(command_prefix='?')
@@ -28,8 +17,27 @@ ip = None  # will be used to keep track of the IP
 ready = False  # Used for on_ready to only run some things once
 loop_task = None  # The task that will be used to check the IP
 
+"""
+Environmental variables (.env)
+and other constant variables
+"""
+class EnvValues:
+    def __init__(self):
+        load_dotenv()
+        self.TOKEN = os.getenv('TOKEN')
+        self.WEBHOOK_URL = os.getenv('WEBHOOK')
+        self.DEBUG_ID = [109093669042151424]
+        self.CHECK_EVERY = 1800  # 30 minutes
+        self.TRUSTED_ROLE = 690223202420785260
+
+
+# setting the config up
+config = EnvValues()
+# adding bot.config, so cogs can use these values
+bot.config = config
+
 # setting up logging
-logging.basicConfig(level=logging.INFO, filename='discord.log', filemode='w',
+logging.basicConfig(level=logging.INFO, filename='discord.log', filemode='a',
                     format='%(asctime)s.%(msecs)d, %(levelname)s, %(filename)s, %(name)s | %(message)s',
                     datefmt='%m-%d-%Y, %H:%M:%S')
 logger = logging.getLogger(__name__)
@@ -42,13 +50,21 @@ bot.load_extension('jishaku')  # loading jishaku, its used for debugging
 """
 Local methods
 """
+
+
 def grab_color():
     """
     This is used for all of the embeds sent. Basically grabs a random color
+    This is also placed in bot class (bot.grab_color) so it can be used by cogs / extensions
 
     :return: discord.Color with random rgb values
     """
     return discord.Color.from_rgb(randint(0, 255), randint(0, 255), randint(0, 255))
+
+
+# referencing grab_color to bot.grab_color
+bot.grab_color = grab_color
+
 
 async def grab_ip():
     """
