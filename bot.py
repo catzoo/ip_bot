@@ -21,6 +21,7 @@ loop_task = None  # The task that will be used to check the IP
 Environmental variables (.env)
 and other constant variables
 """
+IP_FILE = "ip"
 class EnvValues:
     def __init__(self):
         load_dotenv()
@@ -101,11 +102,19 @@ async def check_ip():
     """
     This will check if the IP has changed.
     If it did, then it'll send a message out
+
+    This also manages the ip file. If there isn't a file, it'll create one and put the new IP in
+    Then let users know. If there is an IP file, it will grab the variable ip and check if it changed.
+    If it did, then it will edit the file with the new IP and let users know.
+
+    Doing this so we don't spam the channel with "Bot started, here is the ip" every time the server
+    restarts
     """
     global ip
-    new_ip = await grab_ip()
 
     if ip is not None:
+        new_ip = await grab_ip()
+
         if ip != new_ip:
             logger.info("New IP detected")
             embed = discord.Embed(title='New IP', description=f'IP has changed. Please use || {new_ip} ||',
@@ -113,15 +122,27 @@ async def check_ip():
             await send_webhook(embed=embed)
 
             ip = new_ip
+            with open(IP_FILE, 'w') as f:
+                f.write(new_ip)
     else:
         # if the global ip is None, that means the bot just started
         logger.info("Bot started")
-        embed = discord.Embed(title='Bot started',
-                              description='The bot has restarted / started. Just in case, here is the ip. '
-                                          f'Please use || {new_ip} ||', color=grab_color())
-        await send_webhook(embed=embed)
+        try:
+            with open(IP_FILE, 'r') as f:
+                ip = f.readline()
+                await check_ip()
 
-        ip = new_ip
+        except FileNotFoundError:
+            new_ip = await grab_ip()
+            with open(IP_FILE, 'w') as f:
+                f.write(new_ip)
+
+            embed = discord.Embed(title='Bot started',
+                                  description="Old IP file not found. Just in case, here is the ip. "
+                                              f"Please use || {new_ip} ||", color=grab_color())
+            await send_webhook(embed=embed)
+
+            ip = new_ip
 
 
 async def check_loop(time_wait):
