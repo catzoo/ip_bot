@@ -9,15 +9,11 @@
 ```
 TOKEN=<token>
 WEBHOOK=<webhook_url>
+DEBUG_ID=<list seperated by ",">
+CHECK_EVERY=<seconds>
+TRUSTED_ROLE=<trusted role id>
 ```
 
-There are also more configuration on top of bot.py
-
-```Python
-DEBUG_ID = [109093669042151424]
-CHECK_EVERY = 1800  # 30 minutes
-TRUSTED_ROLE = 690223202420785260
-```
 DEBUG_ID is a list of user IDs. It will be users who get the highest role. Basically, when there are errors it will be DMed to these users, and they can use commands anywhere in the guild and in DMs
 
 CHECK_EVERY is how many times in seconds to check the IP. This will use ipinfo website to grab the IP from. Just note, don't over do it. I'm not sure on their policy on multiple checks, but I believe they don't want to be spammed with calls

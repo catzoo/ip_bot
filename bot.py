@@ -27,10 +27,9 @@ class EnvValues:
         load_dotenv()
         self.TOKEN = os.getenv('TOKEN')
         self.WEBHOOK_URL = os.getenv('WEBHOOK')
-        self.DEBUG_ID = [109093669042151424]
-        self.CHECK_EVERY = 1800  # 30 minutes
-        self.TRUSTED_ROLE = 690223202420785260
-
+        self.DEBUG_ID = os.getenv("DEBUG_ID").split(",")
+        self.CHECK_EVERY = os.getenv('CHECK_EVERY')
+        self.TRUSTED_ROLE = os.getenv('TRUSTED_ROLE')
 
 # setting the config up
 config = EnvValues()
