@@ -27,9 +27,9 @@ class EnvValues:
         load_dotenv()
         self.TOKEN = os.getenv('TOKEN')
         self.WEBHOOK_URL = os.getenv('WEBHOOK')
-        self.DEBUG_ID = os.getenv("DEBUG_ID").split(",")
-        self.CHECK_EVERY = os.getenv('CHECK_EVERY')
-        self.TRUSTED_ROLE = os.getenv('TRUSTED_ROLE')
+        self.DEBUG_ID = [int(developer) for developer in os.getenv("DEBUG_ID").split(",")]
+        self.CHECK_EVERY = int(os.getenv('CHECK_EVERY'))
+        self.TRUSTED_ROLE = int(os.getenv('TRUSTED_ROLE'))
 
 # setting the config up
 config = EnvValues()
@@ -220,6 +220,7 @@ async def on_command_error(ctx, error):
     This occurs when a command has an exception raised
     It will go through this event with the error variable
     """
+    print(error)
     message = ''
     if isinstance(error, commands.NoPrivateMessage):
         message = f'{ctx.command.name} cannot be used in DMs'
