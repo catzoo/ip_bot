@@ -9,6 +9,9 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
+import python_source as source
+import socket
+
 """
 Variables used
 """
@@ -315,10 +318,17 @@ async def status(ctx):
 
     # grabbing the CPU / Memory status
     psutil.cpu_percent()
-    # psutil documentation says to do a second call on cpu_percent
-    # I can have the interval=1, but that would be a blocking call
-    # so it'll be easier to have asyncio.sleep, then call it again
+
+    # Querying the server. psutil needs time to calculate the cpu_percent (more info in the psutil documentation)
+    query = source.Aquery("50.82.113.30", 27015, timeout=5.0)
+    try:
+        server = await query.info()
+        server_info = f"**{server['name']}**\nPlayers: {server['players']} / {server['max_players']}"
+    except socket.timeout:
+        server_info = "Ark server is currently down"
+
     await asyncio.sleep(2.5)
+    # after grabbing the server information, grab the cpu_percent. Should have enough time to calculate.
     cpu_percent = psutil.cpu_percent()
     memory = psutil.virtual_memory()
 
@@ -330,6 +340,7 @@ async def status(ctx):
     embed.add_field(name="CPU Usage Percent", value=f'{cpu_percent}%', inline=False)
     embed.add_field(name="Memory Usage", value=f'Available: {mem_available} GB, Total: {mem_total} GB',
                     inline=False)
+    embed.add_field(name="Server Info", value=server_info, inline=False)
     await message.edit(embed=embed)
 
 
