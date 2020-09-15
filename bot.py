@@ -320,7 +320,7 @@ async def status(ctx):
     psutil.cpu_percent()
 
     # Querying the server. psutil needs time to calculate the cpu_percent (more info in the psutil documentation)
-    query = source.Aquery("50.82.113.30", 27015, timeout=5.0)
+    query = source.Aquery("127.0.0.1", 27015, timeout=5.0)
     try:
         server = await query.info()
         server_info = f"**{server['name']}**\nPlayers: {server['players']} / {server['max_players']}"
