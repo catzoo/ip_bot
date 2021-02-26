@@ -319,16 +319,8 @@ async def status(ctx):
     # grabbing the CPU / Memory status
     psutil.cpu_percent()
 
-    # Querying the server. psutil needs time to calculate the cpu_percent (more info in the psutil documentation)
-    query = source.Aquery("127.0.0.1", 27015, timeout=5.0)
-    try:
-        server = await query.info()
-        server_info = f"**{server['name']}**\nPlayers: {server['players']} / {server['max_players']}"
-    except socket.timeout:
-        server_info = "Ark server is currently down"
-
+    # psutil needs some time to calculate (more info in  psutil documentation)
     await asyncio.sleep(2.5)
-    # after grabbing the server information, grab the cpu_percent. Should have enough time to calculate.
     cpu_percent = psutil.cpu_percent()
     memory = psutil.virtual_memory()
 
